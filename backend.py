@@ -7,7 +7,7 @@ import os, textwrap, datetime
 load_dotenv()                                   # pulls .env locally; on Render use dashboard var
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# System prompt, we can trim down
+# system prompt, can trim down
 paper_context = textwrap.dedent("""
 ### Gao & Torrente‑Murciano 2020
 - Two‑step reduction Au³⁺→Au⁺→Au⁰; Au⁺ step rate‑limiting.
@@ -37,7 +37,7 @@ Literature context:
 {paper_context}
 """
 
-#Flask App
+# flask app
 app = Flask(__name__)
 
 def ask_chataunp(question: str) -> str:
@@ -53,7 +53,7 @@ def ask_chataunp(question: str) -> str:
     )
     return resp.choices[0].message.content.strip()
 
-# Routes
+# routes
 @app.route("/", methods=["GET", "POST"])
 def index():
     answer = ""
@@ -67,6 +67,6 @@ def index():
                 f.write(f"{ts}\nQ: {question}\nA: {answer}\n---\n")
     return render_template("index.html", answer=answer)
 
-# ── Run locally ────────────────────────────────────────────────
+# run locally
 if __name__ == "__main__":
     app.run(debug=True)        # set debug=False in production
