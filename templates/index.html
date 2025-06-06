@@ -1,24 +1,62 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>ChatAuNP – Turkevich Advisor</title>
+  <meta charset="utf-8">
+  <title>ChatAuNP v1.01, with uploads</title>
+
   <style>
-    body{font-family:Arial, sans-serif; max-width:650px; margin:40px auto;}
-    textarea{width:100%; height:120px;}
-    .answer{white-space:pre-wrap; background:#f2f2f2; padding:15px; border-radius:6px;}
+    body        { font-family: system-ui, sans-serif; margin: 2rem; line-height: 1.4; }
+    h1          { margin-top: 0; }
+    form        { margin-bottom: 2rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; }
+    label       { font-weight: 600; }
+    input[type="text"],
+    input[type="file"] { width: 100%; max-width: 480px; margin: .5rem 0 1rem; padding: .4rem; }
+    button      { padding: .5rem 1.25rem; border: none; border-radius: 4px;
+                  background: #0072ff; color: white; font-size: 0.95rem; cursor: pointer; }
+    button:hover{ background: #005bd3; }
+    pre.answer  { white-space: pre-wrap; background: #f9f9f9; padding: 1rem;
+                  border: 1px solid #ddd; border-radius: 6px; }
   </style>
 </head>
 <body>
-  <h1>ChatAuNP</h1>
-  <form method="POST">
-    <textarea name="question" placeholder="Ask about gold nanoparticle synthesis..."></textarea><br>
-    <button type="submit">Ask</button>
+
+  <h1>ChatAuNP v2</h1>
+  <p>
+    Upload papers to enrich the knowledge base, then ask any gold-nanoparticle synthesis question.
+    The model (GPT-4o + RAG) returns a standardized procedure block.
+  </p>
+
+  <!-- ―――  PDF Upload  ――― -->
+  <form action="/upload" method="post" enctype="multipart/form-data">
+    <h2>Upload a PDF (paper, protocol, etc.)</h2>
+    <label for="file">Choose PDF:</label><br>
+    <input type="file" id="file" name="file" accept=".pdf" required>
+    <br>
+    <button>Upload &amp; Index</button>
   </form>
 
+  <!-- ―――  Ask questions  ――― -->
+  <form action="/" method="post">
+    <h2>Ask ChatAuNP</h2>
+    <label for="question">Prompt:</label><br>
+    <input type="text" id="question" name="question"
+           placeholder="e.g. Synthesize 40 nm spherical AuNPs with narrow PDI" required>
+    <br>
+    <button>Get Procedure</button>
+  </form>
+
+  <!-- ―――  answer panel  ――― -->
   {% if answer %}
-  <h2>Response</h2>
-  <div class="answer">{{ answer }}</div>
+    <h2>Generated Procedure</h2>
+    <pre class="answer">{{ answer }}</pre>
+    <p>
+      <small>
+        Need the JSON? Send the above block to <code>/convert</code> as shown in the README
+        or use <code>curl</code>:
+        <code>curl -X POST /convert -H "Content-Type: application/json" -d '{"procedure":"..."}'</code>
+      </small>
+    </p>
   {% endif %}
+
 </body>
 </html>
