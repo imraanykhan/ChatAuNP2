@@ -1,0 +1,3 @@
+# Keep the folder, ignore its contents
+vector_store/*
+!vector_store/.gitkeep
