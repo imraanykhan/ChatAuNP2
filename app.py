@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import io
 import os
-import tempfile
-from pathlib import Path
 from typing import List
 
 from dotenv import load_dotenv
@@ -16,29 +14,30 @@ import numpy as np
 import vector_store as vs
 
 # ---------------------------------------------------------------------------
-# setup ----------------------------------------------------------------------
+# setup
 # ---------------------------------------------------------------------------
-load_dotenv()
+load_dotenv()                                   # loads OPENAI_API_KEY from .env
 
 app = Flask(__name__)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-ENC = tiktoken.get_encoding("cl100k_base")
+ENC = tiktoken.get_encoding("cl100k_base")      # same tokenizer OpenAI uses
 EMBED_MODEL = "text-embedding-3-small"
-MAX_TOKENS = 256  # chunk size (≈ 512 chars)
+MAX_TOKENS = 256                                # ≈512 chars per chunk
 
 # ---------------------------------------------------------------------------
-# utilities ------------------------------------------------------------------
+# utilities
 # ---------------------------------------------------------------------------
 
-def _embed(texts: List[str]):
+def _embed(texts: List[str]) -> np.ndarray:
+    """Call the OpenAI embeddings endpoint and return a (n, d) float32 array."""
     resp = client.embeddings.create(model=EMBED_MODEL, input=texts)
     return np.array([r.embedding for r in resp.data], dtype="float32")
 
 
 def _chunk(text: str) -> List[str]:
-    out, buf = [], []
-    count = 0
+    """Split long text into ~MAX_TOKENS-sized chunks so FAISS can handle them."""
+    out, buf, count = [], [], 0
     for tok in ENC.encode(text):
         buf.append(tok)
         count += 1
@@ -51,13 +50,12 @@ def _chunk(text: str) -> List[str]:
 
 
 def _extract_text(pdf_bytes: bytes) -> str:
-    """Extract plain‑text layer only (no OCR)."""
+    """Extract plain-text layer from the PDF (no OCR)."""
     reader = PdfReader(io.BytesIO(pdf_bytes))
-    return "
-".join(p.extract_text() or "" for p in reader.pages)
+    return "\n".join(page.extract_text() or "" for page in reader.pages)
 
 # ---------------------------------------------------------------------------
-# routes ---------------------------------------------------------------------
+# routes
 # ---------------------------------------------------------------------------
 
 @app.route("/")
@@ -78,7 +76,7 @@ def upload():
     chunks = _chunk(text)
     vecs = _embed(chunks)
     vs.add_embeddings(vecs, chunks)
-    return redirect(url_for("home"))
+    return redirect(url_for("home"))             # refresh the UI
 
 
 @app.route("/ask", methods=["POST"])
@@ -88,17 +86,18 @@ def ask():
         return jsonify({"error": "empty question"}), 400
 
     q_vec = _embed([q])
-    top = vs.query(q_vec, k=6)
+    top = vs.query(q_vec, k=6)                   # [(chunk_text, score), …]
 
     context = "\n---\n".join(c for c, _ in top)
     prompt = (
-        "You are ChatAuNP, an AI assistant that designs gold‑nanoparticle syntheses. "
-        "Answer the user using only the information in the context unless general knowledge about the Turkevich method is required.\n\n"
+        "You are ChatAuNP, an AI assistant that designs gold-nanoparticle "
+        "syntheses. Answer the user *strictly* using the context unless general "
+        "knowledge about the Turkevich method is required.\n\n"
         f"Context:\n{context}\n\nUser question: {q}"
     )
 
     completion = client.chat.completions.create(
-        model="gpt-4o-mini",  # cheap + fast; upgrade as needed
+        model="gpt-4o-mini",                     # cost-efficient; swap as needed
         messages=[{"role": "user", "content": prompt}],
         temperature=0.2,
     )
@@ -106,9 +105,8 @@ def ask():
     answer = completion.choices[0].message.content
     return jsonify({"answer": answer})
 
-
 # ---------------------------------------------------------------------------
-# CLI helper -----------------------------------------------------------------
+# CLI helper
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
