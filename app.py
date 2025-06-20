@@ -90,10 +90,11 @@ def ask():
 
     context = "\n---\n".join(c for c, _ in top)
     prompt = (
-        "You are ChatAuNP, an AI assistant that designs gold-nanoparticle "
-        "syntheses. Answer the user *strictly* using the context unless general "
-        "knowledge about the Turkevich method is required. Assume that you will need to modify the experimental section "
-        "in the provided context using the discussion and results of the uploaded context.\n\n "
+        "You are ChatAuNP, an AI assistant that designs gold nanomaterial "
+        "chemical syntheses. Answer the user *strictly* using the context unless general "
+        "knowledge about synthetic methods is required. Assume that you will need to modify the experimental section "
+        "in the provided context using the discussion and results of the uploaded context. Provide specific numerical "
+        "parameters on the same scale as the paper. This includes, but is not limited to, concentrations, volumes, masses, and temperature. \n\n "
         f"Context:\n{context}\n\nUser question: {q}"
     )
 
