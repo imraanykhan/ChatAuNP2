@@ -94,7 +94,8 @@ def ask():
         "chemical syntheses. Answer the user *strictly* using the context unless general "
         "knowledge about synthetic methods is required. Assume that you will need to modify the experimental section "
         "in the provided context using the discussion and results of the uploaded context. Provide specific numerical "
-        "parameters on the same scale as the paper. This includes, but is not limited to, concentrations, volumes, masses, and temperature. \n\n "
+        "parameters on the same volume scale as the paper. This includes, but is not limited to, concentrations, volumes, masses, and temperature. "
+        "Do not only state modifications, also repeat the parts of the paper you believe should be kept the same. Every concentration should have a volume. \n\n "
         f"Context:\n{context}\n\nUser question: {q}"
     )
 
