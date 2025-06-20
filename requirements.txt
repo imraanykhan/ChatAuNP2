@@ -6,3 +6,4 @@ numpy>=1.26
 PyPDF2>=3.0
 faiss-cpu>=1.8
 tqdm>=4.66
+text gunicorn>=21.2
