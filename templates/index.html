@@ -1,62 +1,45 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>ChatAuNP v1.01, with uploads</title>
-
-  <style>
-    body        { font-family: system-ui, sans-serif; margin: 2rem; line-height: 1.4; }
-    h1          { margin-top: 0; }
-    form        { margin-bottom: 2rem; padding: 1rem; border: 1px solid #ccc; border-radius: 8px; }
-    label       { font-weight: 600; }
-    input[type="text"],
-    input[type="file"] { width: 100%; max-width: 480px; margin: .5rem 0 1rem; padding: .4rem; }
-    button      { padding: .5rem 1.25rem; border: none; border-radius: 4px;
-                  background: #0072ff; color: white; font-size: 0.95rem; cursor: pointer; }
-    button:hover{ background: #005bd3; }
-    pre.answer  { white-space: pre-wrap; background: #f9f9f9; padding: 1rem;
-                  border: 1px solid #ddd; border-radius: 6px; }
-  </style>
+    <meta charset="utf-8">
+    <title>ChatAuNP v1.1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="container py-4">
+    <h1 class="mb-4">ChatAuNP <small class="text-muted">(Turkevich RAG)</small></h1>
 
-  <h1>ChatAuNP v2</h1>
-  <p>
-    Upload papers to enrich the knowledge base, then ask any gold-nanoparticle synthesis question.
-    The model (GPT-4o + RAG) returns a standardized procedure block.
-  </p>
+    <!-- upload ------------------------------------------------------------ -->
+    <form action="/upload" method="post" enctype="multipart/form-data" class="mb-4 p-3 border rounded">
+        <div class="mb-3">
+            <label class="form-label">Add a PDF paper</label>
+            <input class="form-control" type="file" name="pdf" accept="application/pdf" required>
+        </div>
+        <button class="btn btn-primary">Upload &amp; index</button>
+    </form>
 
-  <!-- ―――  PDF Upload  ――― -->
-  <form action="/upload" method="post" enctype="multipart/form-data">
-    <h2>Upload a PDF (paper, protocol, etc.)</h2>
-    <label for="file">Choose PDF:</label><br>
-    <input type="file" id="file" name="file" accept=".pdf" required>
-    <br>
-    <button>Upload &amp; Index</button>
-  </form>
+    <!-- chat -------------------------------------------------------------- -->
+    <div class="mb-3">
+        <label class="form-label">Ask ChatAuNP</label>
+        <textarea id="question" class="form-control" rows="3" placeholder="e.g. Best way to generate monodisperse 15 nm AuNPs?"></textarea>
+    </div>
+    <button id="send" class="btn btn-success mb-4">Send</button>
 
-  <!-- ―――  Ask questions  ――― -->
-  <form action="/" method="post">
-    <h2>Ask ChatAuNP</h2>
-    <label for="question">Prompt:</label><br>
-    <input type="text" id="question" name="question"
-           placeholder="e.g. Synthesize 40 nm spherical AuNPs with narrow PDI" required>
-    <br>
-    <button>Get Procedure</button>
-  </form>
+    <h4>Answer</h4>
+    <pre id="answer" class="border p-3 bg-light"></pre>
 
-  <!-- ―――  answer panel  ――― -->
-  {% if answer %}
-    <h2>Generated Procedure</h2>
-    <pre class="answer">{{ answer }}</pre>
-    <p>
-      <small>
-        Need the JSON? Send the above block to <code>/convert</code> as shown in the README
-        or use <code>curl</code>:
-        <code>curl -X POST /convert -H "Content-Type: application/json" -d '{"procedure":"..."}'</code>
-      </small>
-    </p>
-  {% endif %}
-
+    <script>
+        document.getElementById('send').onclick = async () => {
+            const q = document.getElementById('question').value.trim();
+            if (!q) return;
+            const res = await fetch('/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ question: q })
+            });
+            const data = await res.json();
+            document.getElementById('answer').textContent = data.answer || data.error;
+        };
+    </script>
 </body>
 </html>
