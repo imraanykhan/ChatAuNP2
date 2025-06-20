@@ -23,11 +23,11 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 ENC = tiktoken.get_encoding("cl100k_base")      # same tokenizer OpenAI uses
 EMBED_MODEL = "text-embedding-3-small"
-MAX_TOKENS = 256                                # ≈512 chars per chunk
+MAX_TOKENS = 256                               
 
-# ---------------------------------------------------------------------------
+
 # utilities
-# ---------------------------------------------------------------------------
+
 
 def _embed(texts: List[str]) -> np.ndarray:
     """Call the OpenAI embeddings endpoint and return a (n, d) float32 array."""
@@ -54,9 +54,9 @@ def _extract_text(pdf_bytes: bytes) -> str:
     reader = PdfReader(io.BytesIO(pdf_bytes))
     return "\n".join(page.extract_text() or "" for page in reader.pages)
 
-# ---------------------------------------------------------------------------
+
 # routes
-# ---------------------------------------------------------------------------
+
 
 @app.route("/")
 def home():
@@ -86,7 +86,7 @@ def ask():
         return jsonify({"error": "empty question"}), 400
 
     q_vec = _embed([q])
-    top = vs.query(q_vec, k=6)                   # [(chunk_text, score), …]
+    top = vs.query(q_vec, k=6)                
 
     context = "\n---\n".join(c for c, _ in top)
     prompt = (
@@ -100,7 +100,7 @@ def ask():
     )
 
     completion = client.chat.completions.create(
-        model="gpt-4o-mini",                     # cost-efficient; swap as needed
+        model="gpt-4o-mini",                     # cost
         messages=[{"role": "user", "content": prompt}],
         temperature=0.2,
     )
@@ -108,9 +108,9 @@ def ask():
     answer = completion.choices[0].message.content
     return jsonify({"answer": answer})
 
-# ---------------------------------------------------------------------------
+
 # CLI helper
-# ---------------------------------------------------------------------------
+
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
