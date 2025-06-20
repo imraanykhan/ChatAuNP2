@@ -10,8 +10,6 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 from openai import OpenAI
 from PyPDF2 import PdfReader
-from pdf2image import convert_from_bytes
-import pytesseract
 import tiktoken
 import numpy as np
 
@@ -53,16 +51,10 @@ def _chunk(text: str) -> List[str]:
 
 
 def _extract_text(pdf_bytes: bytes) -> str:
-    """Try text layer, fall back to OCR."""
+    """Extract plain‑text layer only (no OCR)."""
     reader = PdfReader(io.BytesIO(pdf_bytes))
-    txt = "\n".join(p.extract_text() or "" for p in reader.pages)
-    if txt.strip():
-        return txt
-
-    # OCR each page image
-    imgs = convert_from_bytes(pdf_bytes, dpi=300)
-    ocr = "\n".join(pytesseract.image_to_string(img) for img in imgs)
-    return ocr
+    return "
+".join(p.extract_text() or "" for p in reader.pages)
 
 # ---------------------------------------------------------------------------
 # routes ---------------------------------------------------------------------
