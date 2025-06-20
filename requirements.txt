@@ -1,14 +1,16 @@
-# --- web framework & server ---
-Flask==3.1.1        # web framework
-gunicorn==22.0.0    # production WSGI server (Render default)
+# core runtime
+Flask>=3.0
+python-dotenv>=1.0
+openai>=1.18
 
-# --- OpenAI stack ---
-openai==1.84.0      # GPT-4o + embeddings SDK
-python-dotenv==1.1.0  # load .env in both dev & Render
+# PDF + OCR
+PyPDF2>=3.0
+pdf2image>=1.17         # rasterises PDF pages when OCR is needed
+pytesseract>=0.3.10      # wrapper for Tesseract OCR
+Pillow>=10.3
 
-# --- RAG dependencies ---
-faiss-cpu==1.11.0   # vector index (CPU build)
-numpy==2.2.6        # FAISS dependency
-PyPDF2==3.0.1       # PDF text extraction
+# Vector store
+faiss-cpu>=1.8
 
-# (everything else in app.py is from the standard library)
+# Utility
+tqdm>=4.66
