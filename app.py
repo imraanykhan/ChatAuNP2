@@ -92,7 +92,8 @@ def ask():
     prompt = (
         "You are ChatAuNP, an AI assistant that designs gold-nanoparticle "
         "syntheses. Answer the user *strictly* using the context unless general "
-        "knowledge about the Turkevich method is required.\n\n"
+        "knowledge about the Turkevich method is required. Assume that you will need to modify the experimental section "
+        "in the provided context using the discussion and results of the uploaded context.\n\n "
         f"Context:\n{context}\n\nUser question: {q}"
     )
 
