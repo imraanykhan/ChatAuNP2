@@ -1,94 +1,57 @@
 from __future__ import annotations
 
-import io
 import os
-from typing import List
+from typing import List, Dict, Any
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import (
+    Flask, jsonify, render_template, request, abort, send_from_directory
+)
 from openai import OpenAI
 from PyPDF2 import PdfReader
-import tiktoken
 import numpy as np
+import tiktoken
 
-import vector_store as vs
+from backend.parser import convert_to_json, ParserError
 
-# ---------------------------------------------------------------------------
-# setup
-# ---------------------------------------------------------------------------
-load_dotenv()                                   # loads OPENAI_API_KEY from .env
+import vector_store as vs   # your FAISS helper
 
-app = Flask(__name__)
+# ── basic setup ────────────────────────────────────────────────────────────
+load_dotenv()
+app   = Flask(__name__, template_folder="templates", static_folder="static")
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-ENC = tiktoken.get_encoding("cl100k_base")      # same tokenizer OpenAI uses
+ENC         = tiktoken.get_encoding("cl100k_base")
 EMBED_MODEL = "text-embedding-3-small"
-MAX_TOKENS = 256                               
+MAX_TOKENS  = 256
 
+# ── utilities (unchanged) ─────────────────────────────────────────────────
+def _embed(texts: List[str]) -> np.ndarray: ...
+def _chunk(text: str) -> List[str]: ...
+def _extract_text(pdf_bytes: bytes) -> str: ...
 
-# utilities
-
-
-def _embed(texts: List[str]) -> np.ndarray:
-    """Call the OpenAI embeddings endpoint and return a (n, d) float32 array."""
-    resp = client.embeddings.create(model=EMBED_MODEL, input=texts)
-    return np.array([r.embedding for r in resp.data], dtype="float32")
-
-
-def _chunk(text: str) -> List[str]:
-    """Split long text into ~MAX_TOKENS-sized chunks so FAISS can handle them."""
-    out, buf, count = [], [], 0
-    for tok in ENC.encode(text):
-        buf.append(tok)
-        count += 1
-        if count >= MAX_TOKENS:
-            out.append(ENC.decode(buf))
-            buf, count = [], 0
-    if buf:
-        out.append(ENC.decode(buf))
-    return out
-
-
-def _extract_text(pdf_bytes: bytes) -> str:
-    """Extract plain-text layer from the PDF (no OCR)."""
-    reader = PdfReader(io.BytesIO(pdf_bytes))
-    return "\n".join(page.extract_text() or "" for page in reader.pages)
-
-
-# routes
-
-
+# ── routes ────────────────────────────────────────────────────────────────
 @app.route("/")
 def home():
     return render_template("index.html")
 
-
 @app.route("/upload", methods=["POST"])
 def upload():
     file = request.files.get("pdf")
-    if not file or not file.filename.lower().endswith(".pdf"):
-        return redirect(url_for("home"))
-
+    if not file or file.filename == "":
+        abort(400, "No PDF supplied.")
+    if file.mimetype != "application/pdf":
+        abort(400, "Only PDFs accepted.")
     text = _extract_text(file.read())
-    if not text.strip():
-        return "No readable text found in PDF", 400
-
-    chunks = _chunk(text)
-    vecs = _embed(chunks)
-    vs.add_embeddings(vecs, chunks)
-    return redirect(url_for("home"))             # refresh the UI
-
+    vs.add_to_store(text)            # your FAISS helper
+    return jsonify({"status": "ok", "filename": file.filename})
 
 @app.route("/ask", methods=["POST"])
 def ask():
-    q = request.form.get("question", "").strip()
+    q = request.form.get("question", "")
     if not q:
-        return jsonify({"error": "empty question"}), 400
-
-    q_vec = _embed([q])
-    top = vs.query(q_vec, k=6)                
-
-    context = "\n---\n".join(c for c, _ in top)
+        abort(400, "No question.")
+    context = vs.search(q, k=4)      # returns concatenated chunks
     prompt = (
         "You are ChatAuNP, an AI assistant that designs gold nanomaterials "
         "chemical syntheses. Answer the user *strictly* using the context unless general "
@@ -108,18 +71,24 @@ def ask():
         f"Context:\n{context}\n\nUser question: {q}"
     )
 
-    completion = client.chat.completions.create(
-        model="gpt-4o-mini",                     # cost
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.2,
-    )
+#JSON exporter ---------------------------------------------------
+@app.route("/parse", methods=["POST"])
+def parse():
+    data: Dict[str, Any] = request.get_json(silent=True) or {}
+    text = data.get("text", "").strip()
+    if not text:
+        abort(400, "JSON must contain non-empty 'text'.")
+    try:
+        payload = convert_to_json(text)
+    except ParserError as e:
+        abort(422, str(e))
+    return jsonify(payload)
 
-    answer = completion.choices[0].message.content
-    return jsonify({"answer": answer})
+@app.route("/ping")
+def ping():
+    return jsonify({"status": "alive"})
 
-
-# CLI helper
-
+# ── local dev helper ──────────────────────────────────────────────────────
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
