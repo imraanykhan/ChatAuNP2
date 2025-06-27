@@ -3,61 +3,59 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ChatAu v1.1</title>
-
-  <!-- Bootstrap 5 -->
+  <title>ChatAu v1.1</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="container py-4">
   <h1 class="mb-4">ChatAu <small class="text-muted fw-light">(GPT‑4o RAG)</small></h1>
 
-  <!-- -------------------- PDF upload -------------------- -->
+  <!-- ── PDF upload ─────────────────────────────────────────────── -->
   <form action="/upload" method="post" enctype="multipart/form-data" class="mb-4 p-3 border rounded bg-light">
     <div class="mb-3">
-      <label class="form-label">Add a PDF paper</label>
+      <label class="form-label fw-semibold">Add a PDF paper</label>
       <input class="form-control" type="file" name="pdf" accept="application/pdf" required />
     </div>
     <button class="btn btn-primary">Upload</button>
   </form>
 
-  <!-- -------------------- chat input -------------------- -->
+  <!-- ── chat box ───────────────────────────────────────────────── -->
   <div class="mb-3">
-    <label for="question" class="form-label">Ask ChatAu</label>
-    <textarea id="question" class="form-control" rows="3" placeholder="e.g. Best way to generate monodisperse 15 nm AuNPs?"></textarea>
+    <label for="question" class="form-label fw-semibold">Ask ChatAu</label>
+    <textarea id="question" class="form-control" rows="3" placeholder="e.g. Best way to generate monodisperse 15 nm AuNPs?"></textarea>
   </div>
-  <button id="send" class="btn btn-success mb-4">Send</button>
+  <button id="sendBtn" class="btn btn-success mb-4">Send</button>
 
-  <!-- -------------------- answer display -------------------- -->
-  <h4>Answer</h4>
-  <pre id="answer" class="border p-3 bg-light" style="min-height: 8rem; white-space: pre-wrap;"></pre>
+  <!-- ── answer & export row ────────────────────────────────────── -->
+  <div class="d-flex align-items-start gap-3">
+    <div class="flex-grow-1">
+      <h4 class="mb-2">Answer</h4>
+      <pre id="answer" class="border p-3 bg-light" style="min-height:8rem; white-space:pre-wrap"></pre>
+    </div>
+    <div class="pt-4"> <!-- keep the button always visible -->
+      <button id="exportBtn" class="btn btn-outline-secondary">Export → JSON</button>
+    </div>
+  </div>
+  <pre id="output" class="border p-3 bg-light mt-3" style="white-space:pre-wrap"></pre>
 
-  <!-- -------------------- JSON export -------------------- -->
-  <button id="exportBtn" class="btn btn-outline-secondary mt-2">Export → JSON</button>
-  <pre id="output" class="border p-3 bg-light mt-2" style="white-space: pre-wrap;"></pre>
-
-  <!-- -------------------- scripts -------------------- -->
+  <!-- ── scripts ────────────────────────────────────────────────── -->
   <script>
-    /* helper: POST form‑urlencoded */
-    async function postForm(path, payload) {
-      const body = new URLSearchParams(payload);
-      return fetch(path, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body
-      });
-    }
+    // helper: POST url‑encoded
+    const postForm = (path, payload) => fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(payload)
+    });
 
-    /* chat send */
-    document.getElementById('send').addEventListener('click', async () => {
-      const question = document.getElementById('question').value.trim();
-      if (!question) return;
-
-      const res = await postForm('/ask', { question });
+    // send question
+    document.getElementById('sendBtn').addEventListener('click', async () => {
+      const q = document.getElementById('question').value.trim();
+      if (!q) return;
+      const res = await postForm('/ask', { question: q });
       const data = await res.json();
       document.getElementById('answer').textContent = data.answer || data.error || '[no response]';
     });
 
-    /* JSON export */
+    // export to JSON
     document.getElementById('exportBtn').addEventListener('click', async () => {
       const raw = document.getElementById('answer').textContent.trim();
       if (!raw) { alert('No answer to export!'); return; }
@@ -68,23 +66,16 @@
         body: JSON.stringify({ text: raw })
       });
 
-      if (!res.ok) {
-        const msg = await res.text();
-        alert('Parse error: ' + msg);
-        return;
-      }
+      if (!res.ok) { alert('Parser error'); return; }
 
       const jsonData = await res.json();
       const pretty = JSON.stringify(jsonData, null, 2);
       document.getElementById('output').textContent = pretty;
 
-      // trigger download
+      // download file
       const blob = new Blob([pretty], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'protocol.json';
-      a.click();
+      Object.assign(document.createElement('a'), { href:url, download:'protocol.json' }).click();
       URL.revokeObjectURL(url);
     });
   </script>
