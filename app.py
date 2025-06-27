@@ -100,10 +100,11 @@ def ask():
 "'''
  1. **Materials**: 
 []
-
 2. **Procedure**
 []
 3. **Characterization**:
+[]
+4. Explanation of the mechanism of growth.
 []
 ''' \n\n "
         f"Context:\n{context}\n\nUser question: {q}"
