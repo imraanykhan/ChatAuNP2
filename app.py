@@ -96,15 +96,13 @@ def ask():
         "in the provided context using the discussion and results of the uploaded context. Provide specific numerical "
         "parameters on the same volume scale as the paper. This includes, but is not limited to, concentrations, volumes, masses, and temperature. "
         "Do not only state modifications, also repeat the parts of the paper you believe should be kept the same. Every concentration should have a volume. "
-        "Please respond exactly in the following format, replacing the [] with relevant information. \n\n "
+        "Please respond exactly in the following format, replacing the [] with relevant information. For the procedure, do not separately produce a numbered list. Instead, produce a list within the **Procedure** block. \n\n "
 "'''
- 1. **Materials**: 
+1. **Materials**: 
 []
 2. **Procedure**
 []
 3. **Characterization**:
-[]
-4. Explanation of the mechanism of growth.
 []
 ''' \n\n "
         f"Context:\n{context}\n\nUser question: {q}"
