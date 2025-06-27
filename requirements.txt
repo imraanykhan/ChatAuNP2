@@ -7,3 +7,5 @@ PyPDF2>=3.0
 faiss-cpu>=1.8
 tqdm>=4.66
 gunicorn>=21.2
+fastapi
+uvicorn
