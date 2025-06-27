@@ -42,35 +42,40 @@
         };
 
     
-  <!-- Run-the-parser button -->
-  <button id="exportBtn">Export to JSON</button>
-  <pre id="output" style="background:#f8f8f8;padding:1rem"></pre>
+<!-- export button -->
+<button id="exportBtn" class="btn btn-outline-secondary">Export to JSON</button>
+<pre id="output" class="border p-3 bg-light mt-2"></pre>
 
-  <script>
-    const btn     = document.getElementById('exportBtn');
-    const answer  = document.getElementById('answer');
-    const output  = document.getElementById('output');
-
-    btn.addEventListener('click', async () => {
-      const res = await fetch('/parse', {
-        method : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ text: answer.value })
+    <script>
+      const btn     = document.getElementById('exportBtn');
+      const answer  = document.getElementById('answer');
+      const output  = document.getElementById('output');
+    
+      btn.addEventListener('click', async () => {
+        const text = answer.textContent.trim();        // <-- use textContent
+        if (!text) { alert('No answer to convert!'); return; }
+    
+        const res = await fetch('/api/parse', {        // <-- path matches FastAPI
+          method : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body   : JSON.stringify({ text })
+        });
+    
+        if (!res.ok) { alert('Parse error'); return; }
+    
+        const data = await res.json();
+        const json = JSON.stringify(data, null, 2);
+        output.textContent = json;
+    
+        // prompt a download
+        const blob = new Blob([json], { type: 'application/json' });
+        const url  = URL.createObjectURL(blob);
+        const a    = Object.assign(document.createElement('a'), {
+          href: url, download: 'protocol.json'
+        });
+        a.click();
+        URL.revokeObjectURL(url);
       });
-      if (!res.ok) { alert('Parse error'); return; }
-
-      const data = await res.json();
-      output.textContent = JSON.stringify(data, null, 2);
-
-      /prompt a download/
-      const blob = new Blob([JSON.stringify(data, null, 2)], {type : 'application/json'});
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href = url;
-      a.download = 'protocol.json';
-      a.click();
-      URL.revokeObjectURL(url);
-    });
     </script>
 </body>
 </html>
