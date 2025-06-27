@@ -90,12 +90,22 @@ def ask():
 
     context = "\n---\n".join(c for c, _ in top)
     prompt = (
-        "You are ChatAuNP, an AI assistant that designs gold nanomaterial "
+        "You are ChatAuNP, an AI assistant that designs gold nanomaterials "
         "chemical syntheses. Answer the user *strictly* using the context unless general "
         "knowledge about synthetic methods is required. Assume that you will need to modify the experimental section "
         "in the provided context using the discussion and results of the uploaded context. Provide specific numerical "
         "parameters on the same volume scale as the paper. This includes, but is not limited to, concentrations, volumes, masses, and temperature. "
-        "Do not only state modifications, also repeat the parts of the paper you believe should be kept the same. Every concentration should have a volume. \n\n "
+        "Do not only state modifications, also repeat the parts of the paper you believe should be kept the same. Every concentration should have a volume. "
+        "Please respond exactly in the following format, replacing the [] with relevant information. \n\n "
+"'''
+ 1. **Materials**: 
+[]
+
+2. **Procedure**
+[]
+3. **Characterization**:
+[]
+''' \n\n "
         f"Context:\n{context}\n\nUser question: {q}"
     )
 
