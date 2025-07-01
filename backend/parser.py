@@ -1,12 +1,4 @@
 """Light‑weight text‑to‑JSON converter for ChatAu answers.
-
-### Why standalone?
-* **Framework‑agnostic** – works with Flask, FastAPI, CLI, or unit tests.
-* **No heavy deps** – only Python ≥3.8 stdlib.
-* **Single entry‑point** – `convert_to_json(raw: str) -> dict`.
-
-Feel free to extend the schema (SCHEMA_VERSION) or swap the regexes for a
-proper chemistry‑NER down the line.
 """
 from __future__ import annotations
 
