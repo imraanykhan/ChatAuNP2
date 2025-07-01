@@ -14,7 +14,7 @@ import tiktoken
 
 from backend.parser import convert_to_json, ParserError
 
-import vector_store as vs   # your FAISS helper
+import vector_store as vs   # FAISS helper
 
 # ── basic setup ────────────────────────────────────────────────────────────
 load_dotenv()
@@ -43,7 +43,7 @@ def upload():
     if file.mimetype != "application/pdf":
         abort(400, "Only PDFs accepted.")
     text = _extract_text(file.read())
-    vs.add_to_store(text)            # your FAISS helper
+    vs.add_to_store(text)            # FAISS helper
     return jsonify({"status": "ok", "filename": file.filename})
 
 @app.route("/ask", methods=["POST"])
