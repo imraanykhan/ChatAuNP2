@@ -60,14 +60,15 @@ def ask():
         "parameters on the same volume scale as the paper. This includes, but is not limited to, concentrations, volumes, masses, and temperature. "
         "Do not only state modifications, also repeat the parts of the paper you believe should be kept the same. Every concentration should have a volume. "
         "Please respond exactly in the following format, replacing the [] with relevant information. For the procedure, do not separately produce a numbered list. Instead, produce a list within the **Procedure** block. \n\n "
-"'''
-1. **Materials**: 
-[]
-2. **Procedure**
-[]
-3. **Characterization**:
-[]
-''' \n\n "
+        '''
+        1. **Materials**: 
+        []
+        2. **Procedure**
+        []
+        3. **Characterization**:
+        []
+        '''
+        )
         f"Context:\n{context}\n\nUser question: {q}"
     response = client.chat.completions.create(
     model="gpt-4o-mini",
@@ -76,6 +77,7 @@ def ask():
     )
     answer = response.choices[0].message.content
     return jsonify({"answer": answer})
+    
 
 #JSON exporter ---------------------------------------------------
 @app.route("/parse", methods=["POST"])
