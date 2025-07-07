@@ -143,6 +143,12 @@ def parse_route():
 def ping():
     return jsonify({"status": "alive"})
 
+@app.errorhandler(400)
+@app.errorhandler(422)
+@app.errorhandler(500)
+def handle_error(e):
+    return jsonify(error=str(e)), getattr(e, "code", 500)
+
 # ── local dev helper ──────────────────────────────────────────────────────
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
