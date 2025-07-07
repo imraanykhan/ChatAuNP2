@@ -62,3 +62,8 @@ def query(vec, k: int = 5) -> List[Tuple[str, float]]:
 
     scores, ids = index.search(vec, k)
     return [(chunks[i], float(scores[0, j])) for j, i in enumerate(ids[0]) if i != -1]
+
+def add_to_store(doc: str):
+    _store.append(doc)
+    print(f"[vector_store] stored #{len(_store)} (chars={len(doc)})")
+
