@@ -106,7 +106,7 @@ def ask():
       context = ""
    return jsonify({"answer": answer})
 
-    prompt = (
+   prompt = (
         "You are AutoChemGPT, an AI assistant that designs nanomaterial syntheses. "
         "Use the provided context unless general chemistry knowledge is required. "
         "Provide concrete numerical parameters on the same volume scale as the paper. "
@@ -117,13 +117,13 @@ def ask():
         f"Context:\n{context}\n\nUser question: {q}"
     )
 
-    response = client.chat.completions.create(
+   response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.2,
     )
-    answer = response.choices[0].message.content
-    return jsonify({"answer": answer})
+   answer = response.choices[0].message.content
+   return jsonify({"answer": answer})
 
 
 @app.route("/parse", methods=["POST"])
