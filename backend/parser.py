@@ -31,7 +31,7 @@ def _slugify(header: str) -> str:
 
 def _split_sections(text: str) -> Dict[str, str]:
     """Return {section_title: body_text}. Expects headings like
-    `1. **Reagents and Solutions**:` in Markdown.
+    `1. **Materials**:` in Markdown.
     """
     pattern = re.compile(r"^\s*\d+\.\s+\*\*(.+?)\*\*:", re.M)
     parts = pattern.split(text)
@@ -51,7 +51,7 @@ def _extract_bullets(block: str) -> List[str]:
 
 
 @dataclass
-class Reagent:
+class Materials:
     description: str
     amount: Optional[float] = None
     unit: Optional[str] = None
@@ -62,11 +62,11 @@ class Reagent:
         return asdict(self)
 
 
-def _parse_reagent(line: str) -> Reagent:
+def _parse_materials(line: str) -> Materials:
     amt = _amount_rx.search(line)
     conc = _conc_rx.search(line)
     vol = _volume_rx.search(line)
-    return Reagent(
+    return Materials(
         description=line,
         amount=float(amt.group("qty")) if amt else None,
         unit=amt.group("unit") if amt else None,
@@ -102,8 +102,8 @@ def convert_to_json(raw: str) -> Dict[str, object]:
         key = _slugify(header)
         bullets = _extract_bullets(body)
 
-        if "reagent" in key:
-            out["reagents"] = [_parse_reagent(b).asdict() for b in bullets]
+        if "materials" in key:
+            out["materials"] = [_parse_materials(b).asdict() for b in bullets]
         elif any(k in key for k in ("synthesis", "procedure")):
             out["procedure"] = bullets
         elif "characterization" in key:
@@ -113,8 +113,8 @@ def convert_to_json(raw: str) -> Dict[str, object]:
         else:
             out[key] = bullets or body.strip()
 
-    if not out["reagents"] or not out["procedure"]:
-        raise ParserError("Missing required 'Reagents' or 'Procedure' sections.")
+    if not out["materials"] or not out["procedure"]:
+        raise ParserError("Missing required 'Materials' or 'Procedure' sections.")
 
     return out
 
