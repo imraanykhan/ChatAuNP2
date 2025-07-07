@@ -96,18 +96,18 @@ def upload():
 
 @app.route("/ask", methods=["POST"])
 def ask():
-    q = request.form.get("question", "").strip()
-    if not q:
-        abort(400, "No question.")
-
-    try:
-        context = vs.search(q, k=4)  # returns str
-    except Exception as err:  # noqa: BLE001
-        print("[vector_store] search failed:", err)
-        context = ""
+   q = request.form.get("question", "").strip()
+   if not q:
+      abort(400, "No question.")
+   try:
+      context = vs.search(q, k=4)  # returns str
+   except Exception as err:  # noqa: BLE001
+      print("[vector_store] search failed:", err)
+      context = ""
+   return jsonify({"answer": answer})
 
     prompt = (
-        "You are ChatAuNP, an AI assistant that designs gold nanomaterial syntheses. "
+        "You are AutoChemGPT, an AI assistant that designs nanomaterial syntheses. "
         "Use the provided context unless general chemistry knowledge is required. "
         "Provide concrete numerical parameters on the same volume scale as the paper. "
         "Response format (replace []):\n\n"
