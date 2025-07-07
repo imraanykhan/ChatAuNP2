@@ -69,7 +69,7 @@ def ask():
         []
         '''
         )
-        f"Context:\n{context}\n\nUser question: {q}"
+    f"Context:\n{context}\n\nUser question: {q}"
     response = client.chat.completions.create(
     model="gpt-4o-mini",
     messages=[{"role": "user", "content": prompt}],
